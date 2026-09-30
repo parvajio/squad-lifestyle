@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import DeliveryTypeSelector from '@/components/DeliveryTypeSelector';
 import { useCart } from '@/context/CartContext';
+import { useSession } from 'next-auth/react';
 import { CheckCircle2, ArrowLeft, ShieldCheck, Truck, Lock, Loader2 } from 'lucide-react';
 
 interface FormState {
@@ -18,6 +19,7 @@ interface FormState {
 }
 
 export default function CheckoutPage() {
+  const { data: session } = useSession();
   const { cart, totalSelectedAmount, clearSelectedItems, deliveryType, setDeliveryType } = useCart();
   const selectedCartItems = cart.filter((item) => item.selected);
 
@@ -46,6 +48,18 @@ export default function CheckoutPage() {
     address: '',
     email: '',
   });
+
+  // Prefill customer details for logged-in users so orders link to their account
+  useEffect(() => {
+    if (session?.user) {
+      setFormData((prev) => ({
+        name: prev.name || session.user.name || '',
+        number: prev.number,
+        address: prev.address,
+        email: prev.email || session.user.email || '',
+      }));
+    }
+  }, [session]);
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -181,6 +195,14 @@ export default function CheckoutPage() {
             >
               Back to Home
             </Link>
+            {session && (
+              <Link
+                href="/orders"
+                className="px-8 py-3.5 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-700 font-bold uppercase text-xs tracking-widest rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors shadow-xs"
+              >
+                View My Orders
+              </Link>
+            )}
           </div>
         </main>
 

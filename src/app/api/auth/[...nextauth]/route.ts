@@ -91,6 +91,24 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token, user, trigger, session }) {
       if (user) {
+        // Prefer the MongoDB user id/role so order ownership works for all providers
+        // (Google provider ids are not Mongo ObjectIds).
+        try {
+          if (user.email) {
+            await connectToDatabase();
+            const dbUser = await User.findOne({ email: user.email.toLowerCase() });
+            if (dbUser) {
+              token.id = String(dbUser._id);
+              token.role = dbUser.role || 'USER';
+              token.phone = dbUser.phone;
+              token.name = dbUser.name;
+              token.email = dbUser.email;
+              return token;
+            }
+          }
+        } catch {
+          // fall through to provider values
+        }
         token.id = user.id;
         token.role = (user as { role?: 'ADMIN' | 'USER' }).role || 'USER';
         token.phone = (user as { phone?: string }).phone;

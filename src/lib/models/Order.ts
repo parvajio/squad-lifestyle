@@ -19,6 +19,7 @@ export interface ICustomerDetails {
 }
 
 export interface IOrder extends Document {
+  userId?: Types.ObjectId;
   customerDetails: ICustomerDetails;
   items: IOrderItem[];
   subtotalAmount: number;
@@ -32,6 +33,7 @@ export interface IOrder extends Document {
 
 const OrderSchema = new Schema<IOrder>(
   {
+    userId: { type: Schema.Types.ObjectId, ref: 'User', required: false, index: true },
     customerDetails: {
       name: { type: String, required: true },
       number: { type: String, required: true },

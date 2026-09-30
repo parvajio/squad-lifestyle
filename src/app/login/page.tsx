@@ -2,7 +2,7 @@
 
 import React, { Suspense, useState } from 'react';
 import Link from 'next/link';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Logo from '@/components/Logo';
 import { Lock, Mail, ArrowRight } from 'lucide-react';
@@ -31,7 +31,8 @@ function LoginForm() {
       if (res?.error) {
         setError(res.error || 'Invalid credentials');
       } else {
-        router.push('/admin');
+        const freshSession = await getSession();
+        router.push(freshSession?.user?.role === 'ADMIN' ? '/admin' : '/orders');
         router.refresh();
       }
     } catch (err) {
@@ -117,7 +118,7 @@ function LoginForm() {
         <div className="pt-4 border-t border-neutral-200/80 dark:border-neutral-800 space-y-4">
           <button
             type="button"
-            onClick={() => signIn('google', { callbackUrl: '/admin' })}
+            onClick={() => signIn('google', { callbackUrl: '/' })}
             className="w-full py-3 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 font-bold uppercase text-xs tracking-wider flex items-center justify-center gap-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white transition-colors rounded-xl shadow-xs"
           >
             <span>Sign In with Google</span>

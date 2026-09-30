@@ -65,6 +65,14 @@ export default function Navbar() {
           >
             Collections
           </Link>
+          {session && (
+            <Link
+              href="/orders"
+              className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
+            >
+              My Orders
+            </Link>
+          )}
           {isAdmin && (
             <Link
               href="/admin"
@@ -145,6 +153,15 @@ export default function Navbar() {
                       </Link>
                     )}
 
+                    <Link
+                      href="/orders"
+                      onClick={() => setShowUserDropdown(false)}
+                      className="flex items-center gap-2 px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 font-semibold"
+                    >
+                      <ShoppingBag size={14} />
+                      My Orders
+                    </Link>
+
                     <button
                       onClick={() => {
                         setShowUserDropdown(false);
@@ -194,6 +211,15 @@ export default function Navbar() {
           >
             Categories
           </Link>
+          {session && (
+            <Link
+              href="/orders"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-neutral-900 dark:text-white"
+            >
+              My Orders
+            </Link>
+          )}
           {isAdmin && (
             <Link
               href="/admin"
