@@ -6,6 +6,12 @@ import bcrypt from 'bcryptjs';
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/squad_lifestyle';
 
+if (!process.env.MONGODB_URI && process.env.NODE_ENV === 'production') {
+  console.error(
+    'MONGODB_URI is not set in production. Set it in Vercel Dashboard > Project > Settings > Environment Variables.'
+  );
+}
+
 interface MongooseCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
@@ -176,6 +182,14 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
         return m;
       })
       .catch(async (primaryError) => {
+        // In-memory fallback only works locally (writable FS + downloadable binary).
+        // On Vercel / serverless it always fails and just turns a clear DB error
+        // into a timeout + 500, so never attempt it in production.
+        if (process.env.NODE_ENV === 'production') {
+          console.error('MongoDB connection failed in production. Skipping in-memory fallback.', primaryError);
+          throw primaryError;
+        }
+
         console.warn(
           'Primary MongoDB connection failed (likely IP whitelist restriction). Initializing fallback in-memory MongoDB...'
         );
