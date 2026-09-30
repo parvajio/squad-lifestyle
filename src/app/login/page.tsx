@@ -4,12 +4,12 @@ import React, { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Logo from '@/components/Logo';
-import { Shield, Lock, Mail, ArrowRight } from 'lucide-react';
+import { Lock, Mail, ArrowRight } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('admin@squad-lifestyle.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -52,18 +52,6 @@ export default function LoginPage() {
           <p className="text-xs text-neutral-500 dark:text-neutral-400 font-mono uppercase tracking-widest">
             Member & Admin Portal Access
           </p>
-        </div>
-
-        {/* Demo Admin Hint Box */}
-        <div className="p-4 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/80 rounded-xl space-y-2 text-xs">
-          <div className="flex items-center gap-2 font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wider">
-            <Shield size={14} />
-            <span>Default Demo Admin Credentials:</span>
-          </div>
-          <div className="font-mono text-neutral-700 dark:text-neutral-300 space-y-1">
-            <p>Email: <span className="text-neutral-900 dark:text-white font-bold">admin@squad-lifestyle.com</span></p>
-            <p>Password: <span className="text-neutral-900 dark:text-white font-bold">admin123</span></p>
-          </div>
         </div>
 
         {error && (

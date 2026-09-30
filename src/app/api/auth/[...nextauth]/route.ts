@@ -5,22 +5,43 @@ import connectToDatabase from '@/lib/db';
 import User from '@/lib/models/User';
 import bcrypt from 'bcryptjs';
 
+function cleanEnv(v: string | undefined): string | undefined {
+  if (!v || !v.trim()) return undefined;
+  if (v.startsWith('mock_')) return undefined;
+  if (v.includes('placeholder')) return undefined;
+  return v;
+}
+
+const googleClientId = cleanEnv(
+  process.env.AUTH_GOOGLE_ID || process.env.GOOGLE_CLIENT_ID
+);
+const googleClientSecret = cleanEnv(
+  process.env.AUTH_GOOGLE_SECRET || process.env.GOOGLE_CLIENT_SECRET
+);
+
+const authSecret =
+  process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+
+if (!authSecret && process.env.NODE_ENV === 'production') {
+  throw new Error(
+    'AUTH_SECRET / NEXTAUTH_SECRET is not set. Set it in production environment variables.'
+  );
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
-    GoogleProvider({
-      clientId:
-        process.env.AUTH_GOOGLE_ID ||
-        process.env.GOOGLE_CLIENT_ID ||
-        'mock_google_client_id',
-      clientSecret:
-        process.env.AUTH_GOOGLE_SECRET ||
-        process.env.GOOGLE_CLIENT_SECRET ||
-        'mock_google_client_secret',
-    }),
+    ...(googleClientId && googleClientSecret
+      ? [
+          GoogleProvider({
+            clientId: googleClientId,
+            clientSecret: googleClientSecret,
+          }),
+        ]
+      : []),
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
-        email: { label: 'Email', type: 'email', placeholder: 'admin@squad-lifestyle.com' },
+        email: { label: 'Email', type: 'email', placeholder: 'you@example.com' },
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
@@ -72,10 +93,11 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = (user as { role?: 'ADMIN' | 'USER' }).role || 'USER';
       }
+      // NOTE: role is never taken from client session updates (prevents escalation).
+      // Only allow name/email sync on session update.
       if (trigger === 'update' && session?.user) {
         token.name = session.user.name;
         token.email = session.user.email;
-        if (session.user.role) token.role = session.user.role;
       }
       return token;
     },
@@ -94,10 +116,7 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
   },
-  secret:
-    process.env.AUTH_SECRET ||
-    process.env.NEXTAUTH_SECRET ||
-    'squad_lifestyle_secret_key_2026_super_secure_987',
+  secret: authSecret,
 };
 
 const handler = NextAuth(authOptions);

@@ -7,7 +7,7 @@ import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import CartDrawer from '@/components/CartDrawer';
-import { Filter, Sparkles, RefreshCw, ArrowRight, LayoutGrid } from 'lucide-react';
+import { Filter, Sparkles, ArrowRight, LayoutGrid } from 'lucide-react';
 
 interface CategoryItem {
   _id: string;
@@ -40,7 +40,6 @@ export default function HomePage() {
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [loading, setLoading] = useState<boolean>(true);
-  const [seeding, setSeeding] = useState<boolean>(false);
 
   const fetchAll = async () => {
     setLoading(true);
@@ -62,18 +61,6 @@ export default function HomePage() {
   useEffect(() => {
     fetchAll();
   }, []);
-
-  const handleSeedData = async () => {
-    setSeeding(true);
-    try {
-      await fetch('/api/seed', { method: 'POST' });
-      await fetchAll();
-    } catch (e) {
-      console.error('Seed error:', e);
-    } finally {
-      setSeeding(false);
-    }
-  };
 
   // Preview: filtered by pill, newest first, capped
   const previewProducts = useMemo(() => {
@@ -161,14 +148,6 @@ export default function HomePage() {
               <LayoutGrid size={14} />
               <span>View All Products</span>
             </Link>
-            <button
-              onClick={handleSeedData}
-              disabled={seeding}
-              className="px-6 py-3.5 bg-transparent text-neutral-500 dark:text-neutral-400 font-semibold uppercase text-xs tracking-widest hover:text-neutral-900 dark:hover:text-white transition-colors flex items-center gap-2 rounded-xl"
-            >
-              <RefreshCw size={14} className={seeding ? 'animate-spin' : ''} />
-              <span>{seeding ? 'Loading Demo Data...' : 'Load Demo Data'}</span>
-            </button>
           </div>
         </div>
       </section>
