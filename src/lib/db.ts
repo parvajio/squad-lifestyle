@@ -12,9 +12,12 @@ function resolveMongoUri(): string {
     try {
       const url = new URL(raw.replace(/^mongodb\+srv:\/\//, 'https://'));
       if (!url.pathname || url.pathname === '/') {
-        const sep = raw.includes('?') ? '&' : '?';
-        // Insert /squad_lifestyle before query string
-        return raw.replace(/(\.net)(\?.*)?$/, `$1/squad_lifestyle$2`);
+        // Handle both `...mongodb.net` and `...mongodb.net/?appName=x`
+        // (trailing slash before query string).
+        if (raw.includes('?')) {
+          return raw.replace(/(\.net)\/?(\?.*)$/, '$1/squad_lifestyle$2');
+        }
+        return raw.replace(/(\.net)\/?$/, '$1/squad_lifestyle');
       }
     } catch {
       // fall through with raw value
