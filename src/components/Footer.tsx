@@ -31,7 +31,7 @@ export default function Footer() {
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-widest text-neutral-900 dark:text-neutral-200">Direct Support</h4>
             <p className="text-xs text-neutral-600 dark:text-neutral-400">WhatsApp Hotline:</p>
-            <p className="text-sm font-mono font-bold text-neutral-900 dark:text-white">+880 1918-316404</p>
+            <p className="text-sm font-mono font-bold text-neutral-900 dark:text-white">+880 1616-469500 </p>
             <p className="text-xs text-neutral-500 dark:text-neutral-500">Available 24/7 for order inquiries & concierge support.</p>
           </div>
         </div>
