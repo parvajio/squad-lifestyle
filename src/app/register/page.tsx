@@ -1,46 +1,71 @@
 'use client';
 
-import React, { Suspense, useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Logo from '@/components/Logo';
-import { Lock, Mail, ArrowRight } from 'lucide-react';
+import { User as UserIcon, Phone, Mail, Lock, ArrowRight } from 'lucide-react';
 
-function LoginForm() {
+export default function RegisterPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const justRegistered = searchParams.get('registered') === '1';
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleCredentialsLogin = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await signIn('credentials', {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, phone, email, password, confirmPassword }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data?.error || 'Registration failed');
+        return;
+      }
+
+      // Auto sign-in after successful registration
+      const signInRes = await signIn('credentials', {
         email,
         password,
         redirect: false,
       });
 
-      if (res?.error) {
-        setError(res.error || 'Invalid credentials');
+      if (signInRes?.error) {
+        // Account created — ask user to sign in manually
+        router.push('/login?registered=1');
       } else {
         router.push('/admin');
         router.refresh();
       }
     } catch (err) {
       console.error(err);
-      setError('Login failed');
+      setError('Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
+
+  const inputClass =
+    'w-full pl-10 pr-4 py-3 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white font-mono shadow-xs';
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-white flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden transition-colors duration-200">
@@ -53,15 +78,9 @@ function LoginForm() {
         <div className="text-center space-y-4">
           <Logo layout="vertical" size="lg" className="mx-auto" />
           <p className="text-xs text-neutral-500 dark:text-neutral-400 font-mono uppercase tracking-widest">
-            Member & Admin Portal Access
+            Create Your Account
           </p>
         </div>
-
-        {justRegistered && !error && (
-          <div className="p-3 bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold uppercase rounded-xl text-center">
-            Account created successfully. Please sign in.
-          </div>
-        )}
 
         {error && (
           <div className="p-3 bg-red-50 dark:bg-red-950/80 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-xs font-bold uppercase rounded-xl text-center">
@@ -69,8 +88,41 @@ function LoginForm() {
           </div>
         )}
 
-        {/* Credentials Form */}
-        <form onSubmit={handleCredentialsLogin} className="space-y-5">
+        <form onSubmit={handleRegister} className="space-y-5">
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 block">
+              Full Name
+            </label>
+            <div className="relative">
+              <UserIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="John Doe"
+                className={inputClass}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 block">
+              Phone Number
+            </label>
+            <div className="relative">
+              <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+              <input
+                type="tel"
+                required
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+91 98765 43210"
+                className={inputClass}
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
             <label className="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 block">
               Email Address
@@ -82,7 +134,8 @@ function LoginForm() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white font-mono shadow-xs"
+                placeholder="you@example.com"
+                className={inputClass}
               />
             </div>
           </div>
@@ -96,9 +149,29 @@ function LoginForm() {
               <input
                 type="password"
                 required
+                minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white font-mono shadow-xs"
+                placeholder="Min. 6 characters"
+                className={inputClass}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 block">
+              Confirm Password
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+              <input
+                type="password"
+                required
+                minLength={6}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Repeat password"
+                className={inputClass}
               />
             </div>
           </div>
@@ -108,7 +181,7 @@ function LoginForm() {
             disabled={loading}
             className="w-full py-4 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold uppercase text-xs tracking-widest flex items-center justify-center gap-2 hover:bg-black dark:hover:bg-neutral-200 transition-colors shadow-md rounded-xl disabled:opacity-50"
           >
-            <span>{loading ? 'Authenticating...' : 'Sign In to Account'}</span>
+            <span>{loading ? 'Creating Account...' : 'Create Account'}</span>
             <ArrowRight size={16} />
           </button>
         </form>
@@ -120,28 +193,20 @@ function LoginForm() {
             onClick={() => signIn('google', { callbackUrl: '/admin' })}
             className="w-full py-3 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 font-bold uppercase text-xs tracking-wider flex items-center justify-center gap-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white transition-colors rounded-xl shadow-xs"
           >
-            <span>Sign In with Google</span>
+            <span>Sign Up with Google</span>
           </button>
 
           <p className="text-center text-xs text-neutral-500 dark:text-neutral-400">
-            Don&apos;t have an account?{' '}
+            Already have an account?{' '}
             <Link
-              href="/register"
+              href="/login"
               className="font-bold text-neutral-900 dark:text-white underline underline-offset-4 hover:opacity-75"
             >
-              Sign Up
+              Sign In
             </Link>
           </p>
         </div>
       </div>
     </div>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense>
-      <LoginForm />
-    </Suspense>
   );
 }

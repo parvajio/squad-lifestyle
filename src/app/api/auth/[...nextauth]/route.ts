@@ -67,6 +67,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           role: user.role,
           image: user.image,
+          phone: user.phone,
         };
       },
     }),
@@ -92,6 +93,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = (user as { role?: 'ADMIN' | 'USER' }).role || 'USER';
+        token.phone = (user as { phone?: string }).phone;
       }
       // NOTE: role is never taken from client session updates (prevents escalation).
       // Only allow name/email sync on session update.
@@ -105,6 +107,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = (token.role as 'ADMIN' | 'USER') || 'USER';
+        session.user.phone = token.phone as string | undefined;
       }
       return session;
     },
