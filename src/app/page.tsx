@@ -206,7 +206,7 @@ export default function HomePage() {
 
         {/* Preview grid */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <div key={i} className="aspect-[3/4] bg-neutral-200/60 dark:bg-neutral-900 rounded-2xl animate-pulse" />
             ))}
@@ -225,7 +225,7 @@ export default function HomePage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
               {previewProducts.map((product) => (
                 <ProductCard key={product._id} product={product} />
               ))}
@@ -263,7 +263,7 @@ export default function HomePage() {
             {[1, 2].map((s) => (
               <div key={s} className="space-y-4">
                 <div className="h-6 w-48 bg-neutral-200/60 dark:bg-neutral-900 rounded animate-pulse" />
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
                   {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="aspect-[3/4] bg-neutral-200/60 dark:bg-neutral-900 rounded-2xl animate-pulse" />
                   ))}
@@ -295,7 +295,7 @@ export default function HomePage() {
                     View All <ArrowRight size={14} />
                   </Link>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
                   {items.slice(0, SECTION_LIMIT).map((product) => (
                     <ProductCard key={product._id} product={product} />
                   ))}
@@ -319,7 +319,7 @@ export default function HomePage() {
                     View All <ArrowRight size={14} />
                   </Link>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
                   {uncategorizedItems.slice(0, SECTION_LIMIT).map((product) => (
                     <ProductCard key={product._id} product={product} />
                   ))}

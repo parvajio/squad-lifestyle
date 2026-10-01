@@ -20,7 +20,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/80 dark:bg-neutral-950/80 backdrop-blur-md border-b border-neutral-200/80 dark:border-neutral-800/80 transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-2">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">
         {/* Mobile Menu Button */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -31,7 +31,7 @@ export default function Navbar() {
         </button>
 
         {/* Brand Logo */}
-        <Logo size="md" className="shrink-0" />
+        <Logo size="md" className="min-w-0 shrink-0" />
 
         {/* Desktop Navigation Links */}
         <nav className="hidden md:flex items-center gap-8 font-medium text-xs tracking-widest uppercase">
@@ -94,9 +94,9 @@ export default function Navbar() {
             title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
           >
             {theme === 'light' ? (
-              <Moon size={18} className="transition-transform duration-300 hover:rotate-12" />
+              <Moon size={16} className="h-4 w-4 sm:h-[18px] sm:w-[18px] transition-transform duration-300 hover:rotate-12" />
             ) : (
-              <Sun size={18} className="transition-transform duration-300 hover:rotate-45 text-amber-400" />
+              <Sun size={16} className="h-4 w-4 sm:h-[18px] sm:w-[18px] transition-transform duration-300 hover:rotate-45 text-amber-400" />
             )}
           </button>
 
@@ -106,7 +106,7 @@ export default function Navbar() {
             className="shrink-0 relative p-2 sm:p-2.5 rounded-full bg-neutral-100 dark:bg-neutral-900 text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors border border-neutral-200 dark:border-neutral-800"
             aria-label="View Shopping Cart"
           >
-            <ShoppingBag className="w-5 h-5" />
+            <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5" />
             {totalCartCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-black text-white dark:bg-white dark:text-black font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-mono border-2 border-white dark:border-black animate-pulse">
                 {totalCartCount}
@@ -178,7 +178,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center whitespace-nowrap shrink-0 px-3 sm:px-4 py-2 bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-black dark:hover:bg-neutral-200 transition-colors shadow-xs"
+                className="inline-flex items-center justify-center whitespace-nowrap shrink-0 px-3 sm:px-4 py-2 bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 rounded-lg font-bold text-[11px] sm:text-xs uppercase tracking-wider hover:bg-black dark:hover:bg-neutral-200 transition-colors shadow-xs"
               >
                 Sign In
               </Link>

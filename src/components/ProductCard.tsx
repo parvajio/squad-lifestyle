@@ -77,16 +77,16 @@ export default function ProductCard({ product }: ProductCardProps) {
         />
 
         {/* Category Badge */}
-        <div className="absolute top-3 left-3 z-10">
-          <span className="px-3 py-1 bg-white/90 dark:bg-black/80 backdrop-blur-md text-neutral-900 dark:text-white text-[10px] font-bold uppercase tracking-widest rounded-full shadow-xs border border-neutral-200/50 dark:border-neutral-700/50">
+        <div className="absolute top-2 sm:top-3 left-2 sm:left-3 z-10">
+          <span className="px-2 sm:px-3 py-1 bg-white/90 dark:bg-black/80 backdrop-blur-md text-neutral-900 dark:text-white text-[9px] sm:text-[10px] font-bold uppercase tracking-widest rounded-full shadow-xs border border-neutral-200/50 dark:border-neutral-700/50">
             {categoryName}
           </span>
         </div>
 
         {/* Discount Tag */}
         {product.discountPrice && (
-          <div className="absolute top-3 right-3 z-10">
-            <span className="px-2.5 py-1 bg-red-600 text-white text-[10px] font-bold uppercase tracking-widest rounded-full shadow-xs">
+          <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10">
+            <span className="px-2 sm:px-2.5 py-1 bg-red-600 text-white text-[9px] sm:text-[10px] font-bold uppercase tracking-widest rounded-full shadow-xs">
               SAVE ৳{(product.originalPrice - product.discountPrice).toFixed(0)}
             </span>
           </div>
@@ -118,40 +118,40 @@ export default function ProductCard({ product }: ProductCardProps) {
       </Link>
 
       {/* Card Details */}
-      <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+      <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between space-y-2 sm:space-y-3">
         <div>
           <Link href={`/product/${product._id}`}>
-            <h3 className="font-bold text-sm text-neutral-900 dark:text-white group-hover:text-black dark:group-hover:text-neutral-300 transition-colors line-clamp-1 uppercase tracking-tight">
+            <h3 className="font-bold text-xs sm:text-sm text-neutral-900 dark:text-white group-hover:text-black dark:group-hover:text-neutral-300 transition-colors line-clamp-1 uppercase tracking-tight">
               {product.title}
             </h3>
           </Link>
           {product.sizes && product.sizes.length > 0 && (
-            <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono mt-1">
+            <p className="text-[9px] sm:text-[10px] text-neutral-500 dark:text-neutral-400 font-mono mt-1 truncate">
               Sizes: {product.sizes.join(', ')}
             </p>
           )}
         </div>
 
-        <div className="flex items-center justify-between pt-3 border-t border-neutral-100 dark:border-neutral-800">
-          <div className="flex items-baseline gap-2">
+        <div className="flex items-center justify-between gap-1.5 pt-2 sm:pt-3 border-t border-neutral-100 dark:border-neutral-800">
+          <div className="flex items-baseline gap-1 sm:gap-2">
             {product.discountPrice ? (
               <>
-                <span className="text-base font-black font-mono text-neutral-900 dark:text-white">
+                <span className="text-sm sm:text-base font-black font-mono text-neutral-900 dark:text-white">
                   ৳{product.discountPrice}
                 </span>
-                <span className="text-xs text-neutral-400 line-through font-mono">
+                <span className="text-[11px] sm:text-xs text-neutral-400 line-through font-mono">
                   ৳{product.originalPrice}
                 </span>
               </>
             ) : (
-              <span className="text-base font-black font-mono text-neutral-900 dark:text-white">
+              <span className="text-sm sm:text-base font-black font-mono text-neutral-900 dark:text-white">
                 ৳{product.originalPrice}
               </span>
             )}
           </div>
 
           <span
-            className={`text-[9px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+            className={`text-[8px] sm:text-[9px] font-bold uppercase tracking-wider px-2 sm:px-2.5 py-0.5 rounded-full shrink-0 ${
               product.inStock
                 ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
                 : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500'
