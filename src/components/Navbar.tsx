@@ -20,18 +20,18 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/80 dark:bg-neutral-950/80 backdrop-blur-md border-b border-neutral-200/80 dark:border-neutral-800/80 transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-2">
         {/* Mobile Menu Button */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden p-2 text-neutral-800 dark:text-neutral-100 hover:opacity-75 transition-opacity"
+          className="md:hidden p-2 -ml-2 shrink-0 text-neutral-800 dark:text-neutral-100 hover:opacity-75 transition-opacity"
           aria-label="Toggle Menu"
         >
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
 
         {/* Brand Logo */}
-        <Logo size="md" />
+        <Logo size="md" className="shrink-0" />
 
         {/* Desktop Navigation Links */}
         <nav className="hidden md:flex items-center gap-8 font-medium text-xs tracking-widest uppercase">
@@ -85,11 +85,11 @@ export default function Navbar() {
         </nav>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           {/* Light / Dark Mode Toggle Switcher */}
           <button
             onClick={toggleTheme}
-            className="p-2.5 rounded-full bg-neutral-100 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors border border-neutral-200 dark:border-neutral-800"
+            className="shrink-0 p-2 sm:p-2.5 rounded-full bg-neutral-100 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors border border-neutral-200 dark:border-neutral-800"
             aria-label="Toggle Theme Mode"
             title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
           >
@@ -103,7 +103,7 @@ export default function Navbar() {
           {/* Cart Icon Trigger */}
           <button
             onClick={() => setIsCartOpen(true)}
-            className="relative p-2.5 rounded-full bg-neutral-100 dark:bg-neutral-900 text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors border border-neutral-200 dark:border-neutral-800"
+            className="shrink-0 relative p-2 sm:p-2.5 rounded-full bg-neutral-100 dark:bg-neutral-900 text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors border border-neutral-200 dark:border-neutral-800"
             aria-label="View Shopping Cart"
           >
             <ShoppingBag className="w-5 h-5" />
@@ -115,12 +115,12 @@ export default function Navbar() {
           </button>
 
           {/* User Account / Auth Dropdown */}
-          <div className="relative">
+          <div className="relative shrink-0">
             {session ? (
               <div className="relative">
                 <button
                   onClick={() => setShowUserDropdown(!showUserDropdown)}
-                  className="flex items-center gap-2 text-xs font-semibold px-3.5 py-2 rounded-full border border-neutral-300 dark:border-neutral-700 hover:border-black dark:hover:border-white transition-colors bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white shadow-xs"
+                  className="flex items-center gap-2 whitespace-nowrap shrink-0 text-xs font-semibold px-3.5 py-2 rounded-full border border-neutral-300 dark:border-neutral-700 hover:border-black dark:hover:border-white transition-colors bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white shadow-xs"
                 >
                   <UserIcon size={16} />
                   <span className="hidden sm:inline max-w-[100px] truncate">
@@ -178,7 +178,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="px-4 py-2 bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-black dark:hover:bg-neutral-200 transition-colors shadow-xs"
+                className="inline-flex items-center justify-center whitespace-nowrap shrink-0 px-3 sm:px-4 py-2 bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-black dark:hover:bg-neutral-200 transition-colors shadow-xs"
               >
                 Sign In
               </Link>
