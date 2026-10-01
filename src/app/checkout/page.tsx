@@ -382,7 +382,7 @@ export default function CheckoutPage() {
                             Qty: {item.quantity} {item.selectedSize ? `| Size: ${item.selectedSize}` : ''}
                           </p>
                         </div>
-                        <p className="font-bold font-mono text-neutral-900 dark:text-white">${(activePrice * item.quantity).toFixed(2)}</p>
+                        <p className="font-bold font-mono text-neutral-900 dark:text-white">৳{(activePrice * item.quantity).toFixed(2)}</p>
                       </div>
                     );
                   })}

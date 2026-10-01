@@ -253,13 +253,13 @@ export default function ProductsPage() {
                       <td className="px-6 py-3 font-mono">
                         {prod.discountPrice ? (
                           <div className="flex items-baseline gap-1.5">
-                            <span className="font-bold text-neutral-900 dark:text-white">${prod.discountPrice}</span>
+                            <span className="font-bold text-neutral-900 dark:text-white">৳{prod.discountPrice}</span>
                             <span className="text-[10px] text-neutral-400 line-through">
-                              ${prod.originalPrice}
+                              ৳{prod.originalPrice}
                             </span>
                           </div>
                         ) : (
-                          <span className="font-bold text-neutral-900 dark:text-white">${prod.originalPrice}</span>
+                          <span className="font-bold text-neutral-900 dark:text-white">৳{prod.originalPrice}</span>
                         )}
                       </td>
                       <td className="px-6 py-3 font-mono text-neutral-500 dark:text-neutral-400">
@@ -390,7 +390,7 @@ export default function ProductsPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 block">
-                    Original Price ($) *
+                    Original Price (৳) *
                   </label>
                   <input
                     type="number"
@@ -405,7 +405,7 @@ export default function ProductsPage() {
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 block">
-                    Discount Price ($) (Optional)
+                    Discount Price (৳) (Optional)
                   </label>
                   <input
                     type="number"

@@ -151,11 +151,11 @@ export default function CartPage() {
 
                         <div className="flex items-baseline gap-2">
                           <span className="text-lg font-black font-mono text-neutral-900 dark:text-white">
-                            ${activePrice}
+                            ৳{activePrice}
                           </span>
                           {item.product.discountPrice && (
                             <span className="text-xs text-neutral-400 line-through font-mono">
-                              ${item.product.originalPrice}
+                              ৳{item.product.originalPrice}
                             </span>
                           )}
                         </div>

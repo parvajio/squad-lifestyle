@@ -4,7 +4,7 @@ import connectToDatabase from '@/lib/db';
 import Order from '@/lib/models/Order';
 import Product from '@/lib/models/Product';
 import Category from '@/lib/models/Category';
-import { ShoppingCart, Package, Clock, ArrowUpRight, DollarSign } from 'lucide-react';
+import { ShoppingCart, Package, Clock, ArrowUpRight, Banknote } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,9 +60,9 @@ export default async function AdminOverviewPage() {
         <div className="p-6 bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-2xl space-y-3 shadow-xs">
           <div className="flex justify-between items-center text-neutral-500 dark:text-neutral-400">
             <span className="text-xs font-bold uppercase tracking-wider">Total Sales</span>
-            <DollarSign size={20} className="text-emerald-600 dark:text-emerald-400" />
+            <Banknote size={20} className="text-emerald-600 dark:text-emerald-400" />
           </div>
-          <p className="text-3xl font-black font-mono text-neutral-900 dark:text-white">${totalRevenue.toFixed(2)}</p>
+          <p className="text-3xl font-black font-mono text-neutral-900 dark:text-white">৳{totalRevenue.toFixed(2)}</p>
           <span className="text-[10px] text-neutral-400 dark:text-neutral-500">Gross order volume</span>
         </div>
 
@@ -127,7 +127,7 @@ export default async function AdminOverviewPage() {
                 </div>
 
                 <div className="font-mono font-bold text-neutral-900 dark:text-white">
-                  ${(ord.totalAmount || 0).toFixed(2)}
+                  ৳{(ord.totalAmount || 0).toFixed(2)}
                 </div>
 
                 <span

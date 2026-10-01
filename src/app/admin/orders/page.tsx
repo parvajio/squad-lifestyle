@@ -270,7 +270,7 @@ export default function OrdersPage() {
                             </div>
                           </div>
                           <span className="font-mono font-bold text-neutral-900 dark:text-white">
-                            ${((item.priceAtPurchase || 0) * item.quantity).toFixed(2)}
+                            ৳{((item.priceAtPurchase || 0) * item.quantity).toFixed(2)}
                           </span>
                         </div>
                       );

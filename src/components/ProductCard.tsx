@@ -87,7 +87,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         {product.discountPrice && (
           <div className="absolute top-3 right-3 z-10">
             <span className="px-2.5 py-1 bg-red-600 text-white text-[10px] font-bold uppercase tracking-widest rounded-full shadow-xs">
-              SAVE ${(product.originalPrice - product.discountPrice).toFixed(0)}
+              SAVE ৳{(product.originalPrice - product.discountPrice).toFixed(0)}
             </span>
           </div>
         )}
@@ -137,15 +137,15 @@ export default function ProductCard({ product }: ProductCardProps) {
             {product.discountPrice ? (
               <>
                 <span className="text-base font-black font-mono text-neutral-900 dark:text-white">
-                  ${product.discountPrice}
+                  ৳{product.discountPrice}
                 </span>
                 <span className="text-xs text-neutral-400 line-through font-mono">
-                  ${product.originalPrice}
+                  ৳{product.originalPrice}
                 </span>
               </>
             ) : (
               <span className="text-base font-black font-mono text-neutral-900 dark:text-white">
-                ${product.originalPrice}
+                ৳{product.originalPrice}
               </span>
             )}
           </div>

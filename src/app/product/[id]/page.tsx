@@ -187,18 +187,18 @@ export default function ProductDetailsPage() {
                 {hasDiscount ? (
                   <>
                     <span className="text-3xl font-black font-mono text-neutral-900 dark:text-white">
-                      ${product.discountPrice}
+                      ৳{product.discountPrice}
                     </span>
                     <span className="text-xl font-mono text-neutral-400 line-through">
-                      ${product.originalPrice}
+                      ৳{product.originalPrice}
                     </span>
                     <span className="text-xs font-bold text-red-600 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-900 px-2.5 py-1 rounded-full uppercase">
-                      Save ${(product.originalPrice - (product.discountPrice || 0)).toFixed(0)}
+                      Save ৳{(product.originalPrice - (product.discountPrice || 0)).toFixed(0)}
                     </span>
                   </>
                 ) : (
                   <span className="text-3xl font-black font-mono text-neutral-900 dark:text-white">
-                    ${product.originalPrice}
+                    ৳{product.originalPrice}
                   </span>
                 )}
               </div>
