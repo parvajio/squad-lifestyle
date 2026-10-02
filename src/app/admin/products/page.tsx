@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import ImageUploader from '@/components/ImageUploader';
-import { Package, Plus, Edit2, Trash2, X, RefreshCw, Check, Tag } from 'lucide-react';
+import { Package, Plus, Edit2, Trash2, X, RefreshCw, Check, Tag, Search } from 'lucide-react';
 
 interface CategoryItem {
   _id: string;
@@ -24,12 +24,28 @@ interface ProductItem {
   createdAt: string;
 }
 
+const FALLBACK_IMG =
+  'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=300&q=80';
+
+function mainImage(images?: string[]) {
+  if (!images || images.length === 0) return FALLBACK_IMG;
+  return images.find((u) => typeof u === 'string' && /^https?:\/\//.test(u)) ?? FALLBACK_IMG;
+}
+
+function categoryName(category: ProductItem['category']) {
+  return typeof category === 'object' && category !== null ? category.name : 'Apparel';
+}
+
+const inputClass =
+  'w-full px-4 py-3 min-h-[44px] text-sm bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white';
+
 export default function ProductsPage() {
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
+  const [search, setSearch] = useState('');
 
   // Form State
   const [title, setTitle] = useState('');
@@ -48,10 +64,7 @@ export default function ProductsPage() {
   const fetchProductsAndCategories = async () => {
     setLoading(true);
     try {
-      const [pRes, cRes] = await Promise.all([
-        fetch('/api/products'),
-        fetch('/api/categories'),
-      ]);
+      const [pRes, cRes] = await Promise.all([fetch('/api/products'), fetch('/api/categories')]);
       const pJson = await pRes.json();
       const cJson = await cRes.json();
 
@@ -67,6 +80,34 @@ export default function ProductsPage() {
   useEffect(() => {
     fetchProductsAndCategories();
   }, []);
+
+  // Close modal on Escape
+  useEffect(() => {
+    if (!showModal) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowModal(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showModal]);
+
+  // Lock body scroll when modal open
+  useEffect(() => {
+    document.body.style.overflow = showModal ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showModal]);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return products;
+    return products.filter(
+      (p) =>
+        p.title.toLowerCase().includes(q) ||
+        categoryName(p.category).toLowerCase().includes(q)
+    );
+  }, [products, search]);
 
   const handleOpenCreate = () => {
     setEditingProduct(null);
@@ -174,344 +215,402 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="space-y-8 font-sans transition-colors duration-200">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-200/80 dark:border-neutral-800 pb-6">
-        <div>
-          <h1 className="text-3xl font-black uppercase tracking-tight text-neutral-900 dark:text-white flex items-center gap-3">
-            <Package size={28} />
-            <span>Product Catalog</span>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 border-b border-neutral-200 dark:border-neutral-800 pb-5">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white flex items-center gap-2.5">
+            <Package size={26} className="shrink-0" />
+            <span className="truncate">Products</span>
+            <span className="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 tabular-nums">
+              {products.length}
+            </span>
           </h1>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            Manage inventory, images, prices, discounts, and custom size tags.
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+            Manage inventory, images, prices and sizes.
           </p>
         </div>
 
-        <button
-          onClick={handleOpenCreate}
-          className="px-6 py-3 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold uppercase text-xs tracking-widest hover:bg-black dark:hover:bg-neutral-200 transition-colors flex items-center justify-center gap-2 rounded-xl shadow-xs"
-        >
-          <Plus size={16} />
-          <span>Add New Product</span>
-        </button>
+        <div className="flex flex-col sm:flex-row gap-2.5">
+          <label className="relative flex-1">
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search products or categories…"
+              className="w-full pl-10 pr-4 py-3 min-h-[44px] text-sm bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white"
+            />
+          </label>
+          <button
+            onClick={handleOpenCreate}
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 min-h-[44px] bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold text-sm rounded-xl hover:bg-black dark:hover:bg-neutral-200 transition-colors shrink-0"
+          >
+            <Plus size={16} />
+            Add product
+          </button>
+        </div>
       </div>
 
-      {/* Products Table */}
-      <div className="bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-xs">
+      {/* Content */}
+      <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-neutral-400">
             <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2" />
-            <p className="text-xs uppercase tracking-wider font-bold">Loading product catalog...</p>
+            <p className="text-xs uppercase tracking-wide font-bold">Loading products…</p>
           </div>
         ) : products.length === 0 ? (
-          <div className="p-12 text-center text-neutral-500 space-y-3">
-            <p className="text-sm font-bold uppercase tracking-wider">No products added yet.</p>
+          <div className="p-12 text-center space-y-3">
+            <Package size={32} className="mx-auto text-neutral-300 dark:text-neutral-700" />
+            <p className="text-sm font-bold text-neutral-900 dark:text-white">No products yet</p>
+            <p className="text-xs text-neutral-500">Add your first product to start selling.</p>
             <button
               onClick={handleOpenCreate}
-              className="px-4 py-2 bg-neutral-900 border border-neutral-700 text-white font-bold text-xs uppercase rounded-xl"
+              className="mt-2 inline-flex items-center gap-2 px-5 py-3 min-h-[44px] bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold text-sm rounded-xl"
             >
-              Add First Product
+              <Plus size={16} /> Add product
+            </button>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="p-12 text-center">
+            <p className="text-sm font-semibold text-neutral-900 dark:text-white">No matches for “{search}”</p>
+            <button
+              onClick={() => setSearch('')}
+              className="mt-3 text-sm font-semibold text-neutral-500 underline underline-offset-4 min-h-[44px]"
+            >
+              Clear search
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-neutral-50 dark:bg-neutral-950 text-neutral-500 dark:text-neutral-400 uppercase font-mono border-b border-neutral-200/80 dark:border-neutral-800">
-                <tr>
-                  <th className="px-6 py-4">Image</th>
-                  <th className="px-6 py-4">Product Title</th>
-                  <th className="px-6 py-4">Category</th>
-                  <th className="px-6 py-4">Price</th>
-                  <th className="px-6 py-4">Size Tags</th>
-                  <th className="px-6 py-4">Stock Status</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800 text-neutral-800 dark:text-neutral-200">
-                {products.map((prod) => {
-                  const categoryName =
-                    typeof prod.category === 'object' && prod.category !== null
-                      ? prod.category.name
-                      : 'Apparel';
+          <>
+            {/* Mobile cards */}
+            <ul className="md:hidden divide-y divide-neutral-100 dark:divide-neutral-800">
+              {filtered.map((prod) => (
+                <li key={prod._id} className="p-4 flex gap-3">
+                  <div className="relative w-16 h-20 rounded-xl bg-neutral-100 dark:bg-neutral-800 overflow-hidden border border-neutral-200 dark:border-neutral-700 shrink-0">
+                    <Image src={mainImage(prod.images)} alt={prod.title} fill className="object-cover" sizes="64px" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm text-neutral-900 dark:text-white truncate">{prod.title}</p>
+                    <p className="text-xs text-neutral-500 truncate">{categoryName(prod.category)}</p>
+                    <p className="mt-1 text-sm font-bold tabular-nums text-neutral-900 dark:text-white">
+                      ৳{prod.discountPrice ?? prod.originalPrice}
+                      {prod.discountPrice != null && (
+                        <span className="ml-1.5 text-xs font-normal text-neutral-400 line-through">
+                          ৳{prod.originalPrice}
+                        </span>
+                      )}
+                    </p>
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
+                          prod.inStock
+                            ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
+                            : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 border-neutral-200 dark:border-neutral-700'
+                        }`}
+                      >
+                        {prod.inStock ? 'In stock' : 'Out of stock'}
+                      </span>
+                      <div className="flex gap-1.5">
+                        <button
+                          onClick={() => handleOpenEdit(prod)}
+                          className="p-2.5 min-h-[40px] min-w-[40px] flex items-center justify-center text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 rounded-lg"
+                          aria-label={`Edit ${prod.title}`}
+                        >
+                          <Edit2 size={15} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteProduct(prod._id)}
+                          className="p-2.5 min-h-[40px] min-w-[40px] flex items-center justify-center text-red-600 bg-red-50 dark:bg-red-950/50 rounded-lg"
+                          aria-label={`Delete ${prod.title}`}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
 
-                  const mainImg =
-                    prod.images && prod.images.length > 0
-                      ? (prod.images.find((u) => typeof u === 'string' && /^https?:\/\//.test(u)) ??
-                        'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=300&q=80')
-                      : 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=300&q=80';
-
-                  return (
-                    <tr key={prod._id} className="hover:bg-neutral-50/80 dark:hover:bg-neutral-950/60 transition-colors">
-                      <td className="px-6 py-3">
-                        <div className="relative w-10 h-12 rounded-lg bg-neutral-100 dark:bg-neutral-800 overflow-hidden border border-neutral-200 dark:border-neutral-700">
-                          <Image src={mainImg} alt={prod.title} fill className="object-cover" />
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full min-w-[760px] text-left text-sm">
+                <thead className="bg-neutral-50 dark:bg-neutral-950 text-neutral-500 dark:text-neutral-400 uppercase text-[11px] border-b border-neutral-200 dark:border-neutral-800">
+                  <tr>
+                    <th className="px-5 py-3.5 font-semibold">Product</th>
+                    <th className="px-5 py-3.5 font-semibold">Category</th>
+                    <th className="px-5 py-3.5 font-semibold">Price</th>
+                    <th className="px-5 py-3.5 font-semibold">Sizes</th>
+                    <th className="px-5 py-3.5 font-semibold">Stock</th>
+                    <th className="px-5 py-3.5 font-semibold text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+                  {filtered.map((prod) => (
+                    <tr key={prod._id} className="hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 transition-colors">
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="relative w-10 h-12 rounded-lg bg-neutral-100 dark:bg-neutral-800 overflow-hidden border border-neutral-200 dark:border-neutral-700 shrink-0">
+                            <Image src={mainImage(prod.images)} alt={prod.title} fill className="object-cover" sizes="40px" />
+                          </div>
+                          <span className="font-semibold text-neutral-900 dark:text-white truncate max-w-[220px]" title={prod.title}>
+                            {prod.title}
+                          </span>
                         </div>
                       </td>
-                      <td className="px-6 py-3 font-bold text-neutral-900 dark:text-white uppercase max-w-xs truncate">
-                        {prod.title}
-                      </td>
-                      <td className="px-6 py-3 font-mono text-neutral-500 dark:text-neutral-400">{categoryName}</td>
-                      <td className="px-6 py-3 font-mono">
+                      <td className="px-5 py-3 text-neutral-500 dark:text-neutral-400 whitespace-nowrap">{categoryName(prod.category)}</td>
+                      <td className="px-5 py-3 tabular-nums whitespace-nowrap">
                         {prod.discountPrice ? (
-                          <div className="flex items-baseline gap-1.5">
+                          <span className="flex items-baseline gap-1.5">
                             <span className="font-bold text-neutral-900 dark:text-white">৳{prod.discountPrice}</span>
-                            <span className="text-[10px] text-neutral-400 line-through">
-                              ৳{prod.originalPrice}
-                            </span>
-                          </div>
+                            <span className="text-xs text-neutral-400 line-through">৳{prod.originalPrice}</span>
+                          </span>
                         ) : (
                           <span className="font-bold text-neutral-900 dark:text-white">৳{prod.originalPrice}</span>
                         )}
                       </td>
-                      <td className="px-6 py-3 font-mono text-neutral-500 dark:text-neutral-400">
+                      <td className="px-5 py-3">
                         {prod.sizes && prod.sizes.length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
-                            {prod.sizes.map((s) => (
+                          <div className="flex flex-wrap gap-1 max-w-[160px]">
+                            {prod.sizes.slice(0, 5).map((s) => (
                               <span
                                 key={s}
-                                className="px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 rounded text-[10px] border border-neutral-200 dark:border-neutral-700"
+                                className="px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 rounded text-[11px] border border-neutral-200 dark:border-neutral-700 font-medium"
                               >
                                 {s}
                               </span>
                             ))}
+                            {prod.sizes.length > 5 && (
+                              <span className="text-[11px] text-neutral-400">+{prod.sizes.length - 5}</span>
+                            )}
                           </div>
                         ) : (
-                          <span className="text-neutral-400 italic">None</span>
+                          <span className="text-neutral-400 text-xs italic">—</span>
                         )}
                       </td>
-                      <td className="px-6 py-3">
+                      <td className="px-5 py-3 whitespace-nowrap">
                         <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                          className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase border ${
                             prod.inStock
-                              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
-                              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500'
+                              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
+                              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 border-neutral-200 dark:border-neutral-700'
                           }`}
                         >
-                          {prod.inStock ? 'In Stock' : 'Out of Stock'}
+                          {prod.inStock ? 'In stock' : 'Out of stock'}
                         </span>
                       </td>
-                      <td className="px-6 py-3 text-right space-x-2">
+                      <td className="px-5 py-3 text-right whitespace-nowrap">
                         <button
                           onClick={() => handleOpenEdit(prod)}
-                          className="p-2 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg transition-colors"
-                          aria-label="Edit product"
+                          className="p-2.5 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+                          aria-label={`Edit ${prod.title}`}
                         >
-                          <Edit2 size={14} />
+                          <Edit2 size={15} />
                         </button>
                         <button
                           onClick={() => handleDeleteProduct(prod._id)}
-                          className="p-2 text-red-600 hover:text-red-700 bg-red-50 dark:bg-red-950/50 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-lg transition-colors"
-                          aria-label="Delete product"
+                          className="ml-1.5 p-2.5 text-red-600 hover:text-red-700 bg-red-50 dark:bg-red-950/50 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-lg transition-colors"
+                          aria-label={`Delete ${prod.title}`}
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={15} />
                         </button>
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
-      {/* Product Form Modal */}
+      {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/50 backdrop-blur-xs overflow-y-auto">
-          <div className="w-full max-w-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-2xl my-8 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-4">
-              <h3 className="text-lg font-bold uppercase tracking-wider text-neutral-900 dark:text-white">
-                {editingProduct ? 'Edit Product details' : 'Add New Lifestyle Product'}
-              </h3>
-              <button
-                onClick={() => setShowModal(false)}
-                className="text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {errorMsg && (
-              <div className="p-3 bg-red-50 dark:bg-red-950/80 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-xs font-bold uppercase rounded-xl">
-                {errorMsg}
-              </div>
-            )}
-
-            <form onSubmit={handleSaveProduct} className="space-y-6">
-              {/* Product Title */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 block">
-                  Product Title *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Squad Stealth Heavyweight Hoodie"
-                  className="w-full px-4 py-3 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white font-sans shadow-xs"
-                />
+        <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+          <div className="absolute inset-0 bg-neutral-900/50 backdrop-blur-sm" onClick={() => setShowModal(false)} />
+          <div className="relative min-h-full flex items-start sm:items-center justify-center p-3 sm:p-6">
+            <div className="relative w-full max-w-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-2xl my-4 flex flex-col max-h-[calc(100vh-2rem)] overflow-hidden">
+              <div className="flex items-center justify-between gap-3 px-5 sm:px-7 py-4 border-b border-neutral-100 dark:border-neutral-800 shrink-0">
+                <h3 className="text-base font-bold text-neutral-900 dark:text-white truncate">
+                  {editingProduct ? 'Edit product' : 'Add new product'}
+                </h3>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="p-2.5 -mr-1 rounded-xl text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  aria-label="Close dialog"
+                >
+                  <X size={18} />
+                </button>
               </div>
 
-              {/* Category & Stock Toggle */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 block">
-                    Category *
-                  </label>
-                  <select
-                    value={categoryId}
-                    onChange={(e) => setCategoryId(e.target.value)}
-                    className="w-full px-4 py-3 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white uppercase font-bold shadow-xs"
-                  >
-                    {categories.map((cat) => (
-                      <option key={cat._id} value={cat._id}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2 flex flex-col justify-end">
-                  <label className="flex items-center gap-3 cursor-pointer py-3">
-                    <input
-                      type="checkbox"
-                      checked={inStock}
-                      onChange={(e) => setInStock(e.target.checked)}
-                      className="w-5 h-5 accent-neutral-900 dark:accent-white rounded cursor-pointer"
-                    />
-                    <span className="text-xs font-bold uppercase tracking-wider text-neutral-900 dark:text-white">
-                      In Stock & Available
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Pricing (Original & Discount) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 block">
-                    Original Price (৳) *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    value={originalPrice}
-                    onChange={(e) => setOriginalPrice(e.target.value)}
-                    placeholder="120.00"
-                    className="w-full px-4 py-3 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white font-mono shadow-xs"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 block">
-                    Discount Price (৳) (Optional)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={discountPrice}
-                    onChange={(e) => setDiscountPrice(e.target.value)}
-                    placeholder="89.00 (leave empty if no discount)"
-                    className="w-full px-4 py-3 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white font-mono shadow-xs"
-                  />
-                </div>
-              </div>
-
-              {/* Description */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 block">
-                  Product Description *
-                </label>
-                <textarea
-                  rows={4}
-                  required
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Detailed material specs, fit description, care instructions..."
-                  className="w-full px-4 py-3 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white font-sans shadow-xs"
-                />
-              </div>
-
-              {/* Dynamic Size Tags Input */}
-              <div className="space-y-3 p-4 bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700 rounded-xl">
-                <label className="text-xs font-bold uppercase tracking-wider text-neutral-900 dark:text-white flex items-center gap-2">
-                  <Tag size={14} />
-                  <span>Arbitrary Size Tags (e.g., S, M, L, XL, 42, 44 or leave blank)</span>
-                </label>
-
-                {sizes.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {sizes.map((sz) => (
-                      <span
-                        key={sz}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 font-mono font-bold text-xs rounded-full uppercase shadow-xs"
-                      >
-                        {sz}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveSizeTag(sz)}
-                          className="hover:text-red-400 transition-colors"
-                        >
-                          <X size={12} />
-                        </button>
-                      </span>
-                    ))}
+              <div className="overflow-y-auto px-5 sm:px-7 py-5">
+                {errorMsg && (
+                  <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-xs font-semibold rounded-xl">
+                    {errorMsg}
                   </div>
                 )}
 
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={sizeTagInput}
-                    onChange={(e) => setSizeTagInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleAddSizeTag();
-                      }
-                    }}
-                    placeholder="Type size (e.g. 42 or XL) and press Enter"
-                    className="flex-1 px-4 py-2.5 text-xs bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 font-mono uppercase shadow-xs"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddSizeTag}
-                    className="px-4 py-2.5 bg-neutral-800 text-white font-bold text-xs uppercase rounded-xl hover:bg-neutral-700 transition-colors"
-                  >
-                    Add Tag
-                  </button>
-                </div>
-                <p className="text-[10px] text-neutral-500">
-                  If left blank, no size selector will be displayed on the customer product page.
-                </p>
+                <form id="product-form" onSubmit={handleSaveProduct} className="space-y-5">
+                  <div>
+                    <label htmlFor="prod-title" className="text-xs font-bold uppercase tracking-wide text-neutral-700 dark:text-neutral-300 block mb-1.5">
+                      Product title *
+                    </label>
+                    <input
+                      id="prod-title"
+                      type="text"
+                      required
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="e.g. Squad Stealth Heavyweight Hoodie"
+                      className={inputClass}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="prod-cat" className="text-xs font-bold uppercase tracking-wide text-neutral-700 dark:text-neutral-300 block mb-1.5">
+                        Category *
+                      </label>
+                      <select id="prod-cat" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputClass}>
+                        {categories.length === 0 && <option value="">No categories — create one first</option>}
+                        {categories.map((cat) => (
+                          <option key={cat._id} value={cat._id}>
+                            {cat.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex items-end">
+                      <label className="flex items-center gap-3 cursor-pointer min-h-[44px]">
+                        <input
+                          type="checkbox"
+                          checked={inStock}
+                          onChange={(e) => setInStock(e.target.checked)}
+                          className="w-5 h-5 accent-neutral-900 dark:accent-white rounded cursor-pointer"
+                        />
+                        <span className="text-sm font-semibold text-neutral-900 dark:text-white">
+                          In stock &amp; available
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="prod-price" className="text-xs font-bold uppercase tracking-wide text-neutral-700 dark:text-neutral-300 block mb-1.5">
+                        Original price (৳) *
+                      </label>
+                      <input
+                        id="prod-price"
+                        type="number"
+                        step="0.01"
+                        min={0}
+                        required
+                        value={originalPrice}
+                        onChange={(e) => setOriginalPrice(e.target.value)}
+                        placeholder="120.00"
+                        className={`${inputClass} tabular-nums`}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="prod-discount" className="text-xs font-bold uppercase tracking-wide text-neutral-700 dark:text-neutral-300 block mb-1.5">
+                        Discount price (৳)
+                      </label>
+                      <input
+                        id="prod-discount"
+                        type="number"
+                        step="0.01"
+                        min={0}
+                        value={discountPrice}
+                        onChange={(e) => setDiscountPrice(e.target.value)}
+                        placeholder="Optional"
+                        className={`${inputClass} tabular-nums`}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="prod-desc" className="text-xs font-bold uppercase tracking-wide text-neutral-700 dark:text-neutral-300 block mb-1.5">
+                      Description *
+                    </label>
+                    <textarea
+                      id="prod-desc"
+                      rows={4}
+                      required
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Material, fit, care instructions…"
+                      className={`${inputClass} resize-y`}
+                    />
+                  </div>
+
+                  <div className="p-4 bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700 rounded-xl space-y-3">
+                    <p className="text-xs font-bold uppercase tracking-wide text-neutral-900 dark:text-white flex items-center gap-2">
+                      <Tag size={14} />
+                      Sizes
+                    </p>
+                    {sizes.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {sizes.map((sz) => (
+                          <span
+                            key={sz}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[32px] bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 font-semibold text-xs rounded-full uppercase"
+                          >
+                            {sz}
+                            <button type="button" onClick={() => handleRemoveSizeTag(sz)} aria-label={`Remove size ${sz}`} className="hover:opacity-70 p-0.5">
+                              <X size={12} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        type="text"
+                        value={sizeTagInput}
+                        onChange={(e) => setSizeTagInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddSizeTag();
+                          }
+                        }}
+                        placeholder="e.g. M, XL, 42 — press Enter"
+                        className="flex-1 px-4 py-2.5 min-h-[44px] text-sm bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 uppercase"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleAddSizeTag()}
+                        className="px-5 py-2.5 min-h-[44px] bg-neutral-800 dark:bg-neutral-700 text-white font-semibold text-sm rounded-xl hover:bg-neutral-700 transition-colors shrink-0"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </div>
+
+                  <ImageUploader images={images} onChange={setImages} />
+                </form>
               </div>
 
-              {/* Image Uploader Integration */}
-              <ImageUploader images={images} onChange={setImages} />
-
-              <div className="pt-4 flex items-center justify-end gap-3 border-t border-neutral-100 dark:border-neutral-800">
+              <div className="shrink-0 px-5 sm:px-7 py-4 border-t border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 font-bold text-xs uppercase rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                  className="px-5 py-3 min-h-[44px] bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 font-semibold text-sm rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-700"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
+                  form="product-form"
                   disabled={saving}
-                  className="px-6 py-2.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-black dark:hover:bg-neutral-200 flex items-center gap-2 shadow-xs"
+                  className="px-6 py-3 min-h-[44px] bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold text-sm rounded-xl hover:bg-black dark:hover:bg-neutral-200 flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  {saving ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Check size={16} />
-                  )}
-                  <span>{editingProduct ? 'Update Product' : 'Save Product'}</span>
+                  {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Check size={16} />}
+                  {editingProduct ? 'Update product' : 'Save product'}
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}

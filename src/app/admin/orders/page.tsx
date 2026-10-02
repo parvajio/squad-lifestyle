@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { ShoppingCart, Filter, RefreshCw, User, Phone, MapPin, Mail } from 'lucide-react';
+import { ShoppingCart, RefreshCw, User, Phone, MapPin, Mail, Package } from 'lucide-react';
 
 export type OrderStatus = 'IN_REVIEW' | 'IN_PROGRESS' | 'CANCELLED' | 'SUCCESSFUL';
 
@@ -36,6 +36,23 @@ interface OrderRecord {
   createdAt: string;
 }
 
+const FILTERS = ['ALL', 'IN_REVIEW', 'IN_PROGRESS', 'SUCCESSFUL', 'CANCELLED'] as const;
+
+function badge(status: OrderStatus) {
+  switch (status) {
+    case 'IN_REVIEW':
+      return 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800';
+    case 'IN_PROGRESS':
+      return 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800';
+    case 'SUCCESSFUL':
+      return 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
+    case 'CANCELLED':
+      return 'bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800';
+    default:
+      return 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700';
+  }
+}
+
 export default function OrdersPage() {
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -59,6 +76,7 @@ export default function OrdersPage() {
 
   useEffect(() => {
     fetchOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter]);
 
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
@@ -83,202 +101,194 @@ export default function OrdersPage() {
     }
   };
 
-  const getStatusBadge = (status: OrderStatus) => {
-    switch (status) {
-      case 'IN_REVIEW':
-        return 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800';
-      case 'IN_PROGRESS':
-        return 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800';
-      case 'SUCCESSFUL':
-        return 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
-      case 'CANCELLED':
-        return 'bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800';
-      default:
-        return 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700';
-    }
-  };
-
   return (
-    <div className="space-y-8 font-sans transition-colors duration-200">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-200/80 dark:border-neutral-800 pb-6">
-        <div>
-          <h1 className="text-3xl font-black uppercase tracking-tight text-neutral-900 dark:text-white flex items-center gap-3">
-            <ShoppingCart size={28} />
-            <span>Order Fulfillment</span>
-          </h1>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            Review incoming customer orders and update status progressively.
-          </p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 border-b border-neutral-200 dark:border-neutral-800 pb-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white flex items-center gap-2.5">
+              <ShoppingCart size={26} className="shrink-0" />
+              <span className="truncate">Orders</span>
+              {!loading && (
+                <span className="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 tabular-nums">
+                  {orders.length}
+                </span>
+              )}
+            </h1>
+            <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+              Review incoming orders and update their status.
+            </p>
+          </div>
+          <button
+            onClick={fetchOrders}
+            className="shrink-0 inline-flex items-center gap-2 px-4 py-3 min-h-[44px] rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 text-sm font-semibold text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+          >
+            <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
         </div>
 
-        <button
-          onClick={fetchOrders}
-          className="p-2.5 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700 hover:text-neutral-900 dark:hover:text-white rounded-xl transition-colors flex items-center gap-2 text-xs font-bold uppercase shadow-xs"
+        {/* Filters */}
+        <div
+          className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap pb-1"
+          role="tablist"
+          aria-label="Filter orders by status"
         >
-          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-          <span>Refresh List</span>
-        </button>
+          {FILTERS.map((st) => (
+            <button
+              key={st}
+              role="tab"
+              aria-selected={statusFilter === st}
+              onClick={() => setStatusFilter(st)}
+              className={`shrink-0 px-4 py-2.5 min-h-[40px] rounded-full text-xs font-bold uppercase tracking-wide whitespace-nowrap transition-colors ${
+                statusFilter === st
+                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900'
+                  : 'bg-white dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-700 hover:text-neutral-900 dark:hover:text-white'
+              }`}
+            >
+              {st.replace('_', ' ')}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Status Filter Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-neutral-200/80 dark:border-neutral-800 no-scrollbar">
-        <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mr-2 flex items-center gap-1">
-          <Filter size={14} /> Filter Status:
-        </span>
-        {['ALL', 'IN_REVIEW', 'IN_PROGRESS', 'SUCCESSFUL', 'CANCELLED'].map((st) => (
-          <button
-            key={st}
-            onClick={() => setStatusFilter(st)}
-            className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all ${
-              statusFilter === st
-                ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 shadow-xs'
-                : 'bg-white dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 border border-neutral-200/80 dark:border-neutral-800 hover:text-neutral-900 dark:hover:text-white'
-            }`}
-          >
-            {st.replace('_', ' ')}
-          </button>
-        ))}
-      </div>
-
-      {/* Orders List / Table */}
+      {/* List */}
       {loading ? (
-        <div className="p-12 text-center text-neutral-400 bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-2xl shadow-xs">
-          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2" />
-          <p className="text-xs uppercase tracking-wider font-bold">Fetching order records...</p>
+        <div className="space-y-4">
+          {[0, 1].map((i) => (
+            <div key={i} className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5 animate-pulse">
+              <div className="h-4 w-40 bg-neutral-100 dark:bg-neutral-800 rounded" />
+              <div className="mt-3 h-3 w-full bg-neutral-100 dark:bg-neutral-800 rounded" />
+              <div className="mt-2 h-3 w-2/3 bg-neutral-100 dark:bg-neutral-800 rounded" />
+            </div>
+          ))}
         </div>
       ) : orders.length === 0 ? (
-        <div className="p-12 text-center text-neutral-500 bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-2xl space-y-3 shadow-xs">
-          <p className="text-sm font-bold uppercase tracking-wider">No orders found for this status filter.</p>
+        <div className="p-12 text-center bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl">
+          <Package size={32} className="mx-auto mb-3 text-neutral-300 dark:text-neutral-700" />
+          <p className="text-sm font-bold text-neutral-900 dark:text-white">No orders found</p>
+          <p className="mt-1 text-xs text-neutral-500">Try a different status filter.</p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {orders.map((ord) => (
-            <div
+            <article
               key={ord._id}
-              className="bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-2xl p-6 space-y-6 shadow-xs"
+              className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden"
             >
-              {/* Top Header Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100 dark:border-neutral-800 pb-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-mono font-bold text-neutral-900 dark:text-white">
-                      Order #{ord._id}
-                    </span>
-                    <span
-                      className={`px-3 py-0.5 rounded-full text-[10px] font-bold uppercase border font-mono ${getStatusBadge(
-                        ord.status
-                      )}`}
-                    >
-                      {ord.status}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-neutral-400 font-mono">
-                    Placed on: {new Date(ord.createdAt).toLocaleString()}
+              {/* Order header */}
+              <div className="flex flex-col gap-3 px-4 sm:px-6 py-4 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/60 dark:bg-neutral-950/40">
+                <div className="flex items-center justify-between gap-3 min-w-0">
+                  <p className="text-sm font-bold tabular-nums text-neutral-900 dark:text-white truncate" title={ord._id}>
+                    <span className="text-neutral-400 font-medium">Order </span>
+                    #{ord._id.slice(-6).toUpperCase()}
                   </p>
+                  <span className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase border ${badge(ord.status)}`}>
+                    {ord.status.replace('_', ' ')}
+                  </span>
                 </div>
-
-                {/* Progressive Status Dropdown Selector */}
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-neutral-500 uppercase font-bold">Update Status:</span>
-                  <div className="relative">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:justify-between">
+                  <p className="text-xs text-neutral-500 tabular-nums">
+                    {new Date(ord.createdAt).toLocaleString()}
+                  </p>
+                  <label className="flex items-center gap-2 text-xs font-semibold text-neutral-500 uppercase">
+                    <span className="shrink-0">Status</span>
                     <select
                       disabled={updatingId === ord._id}
                       value={ord.status}
                       onChange={(e) => handleStatusChange(ord._id, e.target.value as OrderStatus)}
-                      className="px-4 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white font-mono font-bold text-xs rounded-xl uppercase cursor-pointer focus:outline-none shadow-xs"
+                      className="flex-1 sm:flex-none sm:w-auto px-3 py-2.5 min-h-[44px] bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white font-bold text-xs rounded-xl uppercase cursor-pointer focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white disabled:opacity-50"
                     >
-                      <option value="IN_REVIEW">1. IN_REVIEW</option>
-                      <option value="IN_PROGRESS">2. IN_PROGRESS</option>
-                      <option value="SUCCESSFUL">3. SUCCESSFUL</option>
-                      <option value="CANCELLED">X. CANCELLED</option>
+                      <option value="IN_REVIEW">In review</option>
+                      <option value="IN_PROGRESS">In progress</option>
+                      <option value="SUCCESSFUL">Successful</option>
+                      <option value="CANCELLED">Cancelled</option>
                     </select>
-                  </div>
+                  </label>
                 </div>
               </div>
 
-              {/* Grid: Customer Details + Items */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Customer Details */}
-                <div className="p-4 bg-neutral-50 dark:bg-neutral-950/60 border border-neutral-200/60 dark:border-neutral-800 rounded-xl space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-900 dark:text-white border-b border-neutral-200/60 dark:border-neutral-800 pb-2">
-                    Customer Information
-                  </h4>
-                  <div className="space-y-2 text-xs font-mono text-neutral-600 dark:text-neutral-300">
-                    <p className="flex items-center gap-2">
-                      <User size={14} className="text-neutral-400" />
-                      <span className="font-bold text-neutral-900 dark:text-white">{ord.customerDetails.name}</span>
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <Phone size={14} className="text-neutral-400" />
-                      <span>{ord.customerDetails.number}</span>
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <Mail size={14} className="text-neutral-400" />
-                      <span className="lowercase">{ord.customerDetails.email}</span>
-                    </p>
-                    <p className="flex items-start gap-2 pt-1 border-t border-neutral-200/60 dark:border-neutral-800">
-                      <MapPin size={14} className="text-neutral-400 mt-0.5 flex-shrink-0" />
-                      <span className="font-sans text-[11px] leading-tight">{ord.customerDetails.address}</span>
-                    </p>
-                  </div>
+              <div className="grid grid-cols-1 xl:grid-cols-5 gap-4 p-4 sm:p-6">
+                {/* Customer */}
+                <div className="xl:col-span-2 rounded-xl bg-neutral-50 dark:bg-neutral-950/60 border border-neutral-200/70 dark:border-neutral-800 p-4 space-y-2.5 self-start">
+                  <h3 className="text-[11px] font-bold uppercase tracking-wide text-neutral-500 border-b border-neutral-200/70 dark:border-neutral-800 pb-2">
+                    Customer
+                  </h3>
+                  <p className="flex items-center gap-2 text-sm min-w-0">
+                    <User size={15} className="text-neutral-400 shrink-0" />
+                    <span className="font-semibold text-neutral-900 dark:text-white truncate">{ord.customerDetails.name}</span>
+                  </p>
+                  <p className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300">
+                    <Phone size={15} className="text-neutral-400 shrink-0" />
+                    <a href={`tel:${ord.customerDetails.number}`} className="tabular-nums hover:underline truncate">
+                      {ord.customerDetails.number}
+                    </a>
+                  </p>
+                  <p className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300 min-w-0">
+                    <Mail size={15} className="text-neutral-400 shrink-0" />
+                    <span className="truncate lowercase">{ord.customerDetails.email}</span>
+                  </p>
+                  <p className="flex items-start gap-2 pt-2 border-t border-neutral-200/70 dark:border-neutral-800 text-[13px] leading-snug text-neutral-600 dark:text-neutral-300">
+                    <MapPin size={15} className="text-neutral-400 mt-0.5 shrink-0" />
+                    <span className="break-words">{ord.customerDetails.address}</span>
+                  </p>
                 </div>
 
-                {/* Ordered Items List */}
-                <div className="lg:col-span-2 p-4 bg-neutral-50 dark:bg-neutral-950/60 border border-neutral-200/60 dark:border-neutral-800 rounded-xl space-y-4">
-                  <div className="flex justify-between items-center border-b border-neutral-200/60 dark:border-neutral-800 pb-2">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-900 dark:text-white">
-                      Ordered Products ({ord.items.length})
-                    </h4>
-                    <div className="text-right space-y-0.5">
+                {/* Items */}
+                <div className="xl:col-span-3 rounded-xl bg-neutral-50 dark:bg-neutral-950/60 border border-neutral-200/70 dark:border-neutral-800 p-4 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 border-b border-neutral-200/70 dark:border-neutral-800 pb-3">
+                    <h3 className="text-[11px] font-bold uppercase tracking-wide text-neutral-500">
+                      Items ({ord.items.length})
+                    </h3>
+                    <div className="sm:text-right">
                       {ord.deliveryType && (
-                        <p className="text-[11px] font-mono text-neutral-500">
+                        <p className="text-xs tabular-nums text-neutral-500">
                           Delivery ({ord.deliveryType === 'outside' ? 'Outside Dhaka' : 'Inside Dhaka'}): ৳
                           {(ord.deliveryCharge ?? 0).toFixed(2)}
                         </p>
                       )}
-                      <span className="text-sm font-black font-mono text-neutral-900 dark:text-white">
-                        Total Payable: ৳{ord.totalAmount.toFixed(2)}
-                      </span>
+                      <p className="text-base font-extrabold tabular-nums text-neutral-900 dark:text-white">
+                        ৳{ord.totalAmount.toFixed(2)}
+                      </p>
                     </div>
                   </div>
 
-                  <div className="divide-y divide-neutral-200/60 dark:divide-neutral-800 space-y-3 pt-1">
+                  <ul className="divide-y divide-neutral-200/60 dark:divide-neutral-800">
                     {ord.items.map((item, idx) => {
                       const prodTitle =
                         item.product && typeof item.product === 'object'
                           ? item.product.title
                           : 'Product';
-                      const mainImg =
+                      const img =
                         item.product &&
                         typeof item.product === 'object' &&
                         item.product.images &&
                         item.product.images.length > 0
                           ? item.product.images[0]
                           : 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=200&q=80';
-
                       return (
-                        <div key={idx} className="flex items-center justify-between text-xs pt-2">
-                          <div className="flex items-center gap-3">
-                            <div className="relative w-10 h-12 bg-white dark:bg-neutral-800 rounded-lg overflow-hidden flex-shrink-0 border border-neutral-200 dark:border-neutral-700">
-                              <Image src={mainImg} alt={prodTitle} fill className="object-cover" />
-                            </div>
-                            <div>
-                              <p className="font-bold text-neutral-900 dark:text-white uppercase">{prodTitle}</p>
-                              <p className="text-[10px] text-neutral-500 font-mono">
-                                Quantity: {item.quantity} {item.selectedSize ? `| Size: ${item.selectedSize}` : ''}
-                              </p>
-                            </div>
+                        <li key={idx} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                          <div className="relative w-11 h-14 bg-white dark:bg-neutral-800 rounded-lg overflow-hidden shrink-0 border border-neutral-200 dark:border-neutral-700">
+                            <Image src={img} alt={prodTitle} fill className="object-cover" sizes="44px" />
                           </div>
-                          <span className="font-mono font-bold text-neutral-900 dark:text-white">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-[13px] text-neutral-900 dark:text-white truncate">{prodTitle}</p>
+                            <p className="text-xs text-neutral-500 tabular-nums">
+                              Qty {item.quantity}
+                              {item.selectedSize ? ` · Size ${item.selectedSize}` : ''}
+                            </p>
+                          </div>
+                          <span className="shrink-0 text-[13px] font-bold tabular-nums text-neutral-900 dark:text-white">
                             ৳{((item.priceAtPurchase || 0) * item.quantity).toFixed(2)}
                           </span>
-                        </div>
+                        </li>
                       );
                     })}
-                  </div>
+                  </ul>
                 </div>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       )}

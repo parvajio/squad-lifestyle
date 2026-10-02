@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Truck, Save, Loader2, CheckCircle2 } from 'lucide-react';
+import { Truck, Save, Loader2, CheckCircle2, AlertCircle, MapPin } from 'lucide-react';
 
 export default function DeliverySettingsPage() {
   const [dhaka, setDhaka] = useState('70');
@@ -46,7 +46,7 @@ export default function DeliverySettingsPage() {
       if (json.success) {
         setDhaka(String(json.data.dhaka));
         setOutside(String(json.data.outside));
-        setMessage({ type: 'success', text: 'Delivery charges updated successfully.' });
+        setMessage({ type: 'success', text: 'Delivery charges updated.' });
       } else {
         setMessage({ type: 'error', text: json.error || 'Failed to update charges.' });
       }
@@ -59,91 +59,109 @@ export default function DeliverySettingsPage() {
   };
 
   return (
-    <div className="space-y-8 font-sans transition-colors duration-200 max-w-2xl">
-      <div className="border-b border-neutral-200/80 dark:border-neutral-800 pb-6">
-        <h1 className="text-3xl font-black uppercase tracking-tight text-neutral-900 dark:text-white flex items-center gap-3">
-          <Truck size={28} />
-          <span>Delivery Charges</span>
+    <div className="space-y-6 max-w-2xl">
+      <div className="border-b border-neutral-200 dark:border-neutral-800 pb-5">
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white flex items-center gap-2.5">
+          <Truck size={26} className="shrink-0" />
+          <span className="truncate">Delivery charges</span>
         </h1>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-          Manage Inside Dhaka and Outside Dhaka delivery fees applied at checkout.
+        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+          Fees applied at checkout based on delivery zone.
         </p>
       </div>
 
       {message && (
         <div
-          className={`p-4 text-xs font-bold uppercase rounded-xl border flex items-center gap-2 ${
+          role="status"
+          className={`p-4 text-sm font-semibold rounded-xl border flex items-start gap-2.5 ${
             message.type === 'success'
               ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400'
               : 'bg-red-50 dark:bg-red-950/60 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400'
           }`}
         >
-          {message.type === 'success' && <CheckCircle2 size={16} />}
+          {message.type === 'success' ? (
+            <CheckCircle2 size={18} className="shrink-0 mt-0.5" />
+          ) : (
+            <AlertCircle size={18} className="shrink-0 mt-0.5" />
+          )}
           <span>{message.text}</span>
         </div>
       )}
 
       <form
         onSubmit={handleSave}
-        className="bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xs"
+        className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5 sm:p-7 space-y-5"
       >
         {loading ? (
           <div className="py-10 text-center text-neutral-400">
             <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
-            <p className="text-xs uppercase tracking-wider font-bold">Loading charges...</p>
+            <p className="text-xs uppercase tracking-wide font-bold">Loading charges…</p>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider block text-neutral-800 dark:text-neutral-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="charge-dhaka" className="text-xs font-bold uppercase tracking-wide block mb-1.5 text-neutral-700 dark:text-neutral-300">
                   Inside Dhaka (৳) *
                 </label>
-                <input
-                  type="number"
-                  min={0}
-                  step="1"
-                  required
-                  value={dhaka}
-                  onChange={(e) => setDhaka(e.target.value)}
-                  placeholder="e.g. 70"
-                  className="w-full px-4 py-3 text-sm font-mono border border-neutral-200 dark:border-neutral-700 rounded-xl bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white shadow-xs"
-                />
-                <p className="text-[11px] text-neutral-500">Applied when customer selects Inside Dhaka.</p>
+                <div className="relative">
+                  <MapPin size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
+                  <input
+                    id="charge-dhaka"
+                    type="number"
+                    min={0}
+                    step="1"
+                    required
+                    value={dhaka}
+                    onChange={(e) => setDhaka(e.target.value)}
+                    placeholder="70"
+                    className="w-full pl-10 pr-4 py-3 min-h-[48px] text-base tabular-nums border border-neutral-200 dark:border-neutral-700 rounded-xl bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white"
+                  />
+                </div>
+                <p className="mt-1.5 text-xs text-neutral-500">Applied for Inside Dhaka orders.</p>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider block text-neutral-800 dark:text-neutral-200">
+              <div>
+                <label htmlFor="charge-outside" className="text-xs font-bold uppercase tracking-wide block mb-1.5 text-neutral-700 dark:text-neutral-300">
                   Outside Dhaka (৳) *
                 </label>
-                <input
-                  type="number"
-                  min={0}
-                  step="1"
-                  required
-                  value={outside}
-                  onChange={(e) => setOutside(e.target.value)}
-                  placeholder="e.g. 130"
-                  className="w-full px-4 py-3 text-sm font-mono border border-neutral-200 dark:border-neutral-700 rounded-xl bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white shadow-xs"
-                />
-                <p className="text-[11px] text-neutral-500">Applied when customer selects Outside Dhaka.</p>
+                <div className="relative">
+                  <Truck size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
+                  <input
+                    id="charge-outside"
+                    type="number"
+                    min={0}
+                    step="1"
+                    required
+                    value={outside}
+                    onChange={(e) => setOutside(e.target.value)}
+                    placeholder="130"
+                    className="w-full pl-10 pr-4 py-3 min-h-[48px] text-base tabular-nums border border-neutral-200 dark:border-neutral-700 rounded-xl bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white"
+                  />
+                </div>
+                <p className="mt-1.5 text-xs text-neutral-500">Applied for Outside Dhaka orders.</p>
               </div>
+            </div>
+
+            <div className="rounded-xl bg-neutral-50 dark:bg-neutral-950/60 border border-neutral-200/70 dark:border-neutral-800 p-4 text-sm text-neutral-600 dark:text-neutral-300">
+              Current checkout preview: <strong className="tabular-nums text-neutral-900 dark:text-white">৳{dhaka}</strong> inside Dhaka ·{' '}
+              <strong className="tabular-nums text-neutral-900 dark:text-white">৳{outside}</strong> outside Dhaka.
             </div>
 
             <button
               type="submit"
               disabled={saving}
-              className="w-full py-4 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold uppercase text-xs tracking-widest flex items-center justify-center gap-2 hover:bg-black dark:hover:bg-neutral-200 transition-colors shadow-lg rounded-xl disabled:opacity-50"
+              className="w-full py-3.5 min-h-[48px] bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold text-sm rounded-xl flex items-center justify-center gap-2 hover:bg-black dark:hover:bg-neutral-200 transition-colors disabled:opacity-50"
             >
               {saving ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Saving...</span>
+                  Saving…
                 </>
               ) : (
                 <>
                   <Save size={16} />
-                  <span>Save Delivery Charges</span>
+                  Save delivery charges
                 </>
               )}
             </button>
