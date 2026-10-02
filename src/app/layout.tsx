@@ -19,6 +19,14 @@ export const metadata: Metadata = {
   title: 'Squad Lifestyle | Minimalist Apparel & Streetwear (squad-lifestyle.com)',
   description:
     'Squad Lifestyle represents modern minimalist apparel and luxury streetwear engineered with premium materials and high-contrast monochrome design aesthetics.',
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon.png', sizes: '512x512', type: 'image/png' },
+      { url: '/favicon.ico', sizes: 'any' },
+    ],
+    apple: [{ url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
