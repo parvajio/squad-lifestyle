@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import Providers from '@/components/Providers';
+import MetaPixel from '@/components/MetaPixel';
 import './globals.css';
 
 const inter = Inter({
@@ -47,6 +49,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="min-h-full flex flex-col bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 transition-colors duration-200" suppressHydrationWarning>
+        <Suspense fallback={null}>
+          <MetaPixel />
+        </Suspense>
         <Providers>{children}</Providers>
       </body>
     </html>

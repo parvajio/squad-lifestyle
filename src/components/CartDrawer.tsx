@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { trackInitiateCheckout } from '@/lib/fpixel';
 
 export default function CartDrawer() {
   const {
@@ -18,6 +19,20 @@ export default function CartDrawer() {
     totalSelectedAmount,
     selectedItemCount,
   } = useCart();
+
+  // The user action that begins checkout — fires once per real click.
+  const handleProceedToCheckout = () => {
+    trackInitiateCheckout(
+      cart
+        .filter((item) => item.selected)
+        .map((item) => ({
+          contentId: item.product._id,
+          quantity: item.quantity,
+          unitPrice: item.product.discountPrice ?? item.product.originalPrice,
+        }))
+    );
+    setIsCartOpen(false);
+  };
 
   if (!isCartOpen) return null;
 
@@ -216,7 +231,7 @@ export default function CartDrawer() {
 
               <Link
                 href="/checkout"
-                onClick={() => setIsCartOpen(false)}
+                onClick={handleProceedToCheckout}
                 className={`w-full py-3.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold uppercase text-xs tracking-widest flex items-center justify-center gap-2 hover:bg-black dark:hover:bg-neutral-200 transition-colors shadow-md rounded-xl ${
                   selectedItemCount === 0 ? 'opacity-50 pointer-events-none' : ''
                 }`}

@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import CartDrawer from '@/components/CartDrawer';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import { useCart, CartProduct } from '@/context/CartContext';
+import { pixelTrack } from '@/lib/fpixel';
 import { ShoppingBag, ArrowLeft, Check, Truck, ShieldCheck, RefreshCw } from 'lucide-react';
 
 interface ProductDetail {
@@ -34,21 +35,38 @@ export default function ProductDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [addedToast, setAddedToast] = useState(false);
 
+  // Single-flight fetch: the AbortController cleanup means only one request
+  // per product id can ever resolve (StrictMode's dev double-effect aborts
+  // the first), so the ViewContent tracked alongside the surviving response
+  // fires exactly once per product view with no dedup flags.
   useEffect(() => {
-    if (id) {
-      fetch(`/api/products/${id}`)
-        .then((res) => res.json())
-        .then((json) => {
-          if (json.success && json.data) {
-            setProduct(json.data);
-            if (json.data.sizes && json.data.sizes.length > 0) {
-              setSelectedSize(json.data.sizes[0]);
-            }
+    if (!id) return;
+    const controller = new AbortController();
+    fetch(`/api/products/${id}`, { signal: controller.signal })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data) {
+          setProduct(json.data);
+          if (json.data.sizes && json.data.sizes.length > 0) {
+            setSelectedSize(json.data.sizes[0]);
           }
-        })
-        .catch((err) => console.error('Error fetching product:', err))
-        .finally(() => setLoading(false));
-    }
+          pixelTrack('ViewContent', {
+            content_ids: [json.data._id],
+            content_name: json.data.title,
+            content_type: 'product',
+            value: json.data.discountPrice ?? json.data.originalPrice,
+            currency: 'BDT',
+          });
+        }
+      })
+      .catch((err) => {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
+        console.error('Error fetching product:', err);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
   }, [id]);
 
   if (loading) {

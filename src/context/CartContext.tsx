@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { pixelTrack } from '@/lib/fpixel';
 
 export interface CartProduct {
   _id: string;
@@ -76,6 +77,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [cart, deliveryType, isMounted]);
 
   const addToCart = (product: CartProduct, selectedSize?: string, quantity = 1) => {
+    const price = product.discountPrice ?? product.originalPrice;
+    pixelTrack('AddToCart', {
+      content_ids: [product._id],
+      content_name: product.title,
+      content_type: 'product',
+      value: price * quantity,
+      currency: 'BDT',
+    });
+
     setCart((prevCart) => {
       const existingIndex = prevCart.findIndex(
         (item) => item.product._id === product._id && item.selectedSize === selectedSize

@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import DeliveryTypeSelector from '@/components/DeliveryTypeSelector';
 import { useCart } from '@/context/CartContext';
+import { trackInitiateCheckout } from '@/lib/fpixel';
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, ArrowLeft } from 'lucide-react';
 
 export default function CartPage() {
@@ -43,6 +44,19 @@ export default function CartPage() {
   const grandTotal = totalSelectedAmount + (selectedItemCount > 0 ? deliveryCharge : 0);
 
   const allSelected = cart.length > 0 && cart.every((item) => item.selected);
+
+  // The user action that begins checkout — fires once per real click.
+  const handleProceedToCheckout = () => {
+    trackInitiateCheckout(
+      cart
+        .filter((item) => item.selected)
+        .map((item) => ({
+          contentId: item.product._id,
+          quantity: item.quantity,
+          unitPrice: item.product.discountPrice ?? item.product.originalPrice,
+        }))
+    );
+  };
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-white flex flex-col font-sans transition-colors duration-200">
@@ -245,6 +259,7 @@ export default function CartPage() {
 
                 <Link
                   href="/checkout"
+                  onClick={handleProceedToCheckout}
                   className={`w-full py-4 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold uppercase text-xs tracking-widest flex items-center justify-center gap-2 hover:bg-black dark:hover:bg-neutral-200 transition-colors shadow-lg rounded-xl ${
                     selectedItemCount === 0 ? 'opacity-50 pointer-events-none' : ''
                   }`}

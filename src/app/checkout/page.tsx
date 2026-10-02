@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import DeliveryTypeSelector from '@/components/DeliveryTypeSelector';
 import { useCart } from '@/context/CartContext';
+import { pixelTrack } from '@/lib/fpixel';
 import { useSession } from 'next-auth/react';
 import { CheckCircle2, ArrowLeft, ShieldCheck, Truck, Lock, Loader2 } from 'lucide-react';
 
@@ -65,12 +66,19 @@ export default function CheckoutPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [completedOrder, setCompletedOrder] = useState<Record<string, unknown> | null>(null);
 
+  // InitiateCheckout is intentionally NOT fired here. It fires from the
+  // "Proceed to Checkout" click (cart page + cart drawer) — the actual user
+  // action that begins checkout. A mount effect would re-fire on every
+  // remount/StrictMode replay; a click handler fires once per real click.
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
+    if (completedOrder) return;
     if (selectedCartItems.length === 0) {
       setErrorMsg('No selected items in cart for checkout.');
       return;
@@ -100,6 +108,13 @@ export default function CheckoutPage() {
 
       if (json.success) {
         setCompletedOrder(json.data);
+        pixelTrack('Purchase', {
+          content_ids: selectedCartItems.map((item) => item.product._id),
+          content_type: 'product',
+          value: Number(json.data?.totalAmount ?? grandTotal),
+          currency: 'BDT',
+          num_items: selectedCartItems.reduce((sum, item) => sum + item.quantity, 0),
+        });
         clearSelectedItems();
       } else {
         setErrorMsg(json.error || 'Failed to place order');
